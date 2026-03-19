@@ -1,0 +1,46 @@
+# Node
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# React Native
+.expo/
+.expo-shared/
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.orig.*
+
+# Metro
+.metro-health-check*
+
+# Android
+android/.gradle/
+android/app/build/
+android/build/
+android/app/.cxx/
+android/local.properties
+android/app/debug.keystore
+*.apk
+*.aab
+
+# iOS
+ios/Pods/
+ios/build/
+ios/DerivedData/
+
+# Env
+.env
+.env.local
+.env.*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.idea/
+.vscode/
+*.swp
