@@ -49,14 +49,18 @@ export default function App() {
         // Transitioned offline → online
         try {
           const {synced, failed} = await syncOfflineQueue();
-          if (synced > 0) {
-            console.log(`[sync] Synced ${synced} offline collection(s).`);
-          }
-          if (failed > 0) {
-            console.warn(`[sync] ${failed} item(s) failed to sync.`);
+          if (__DEV__) {
+            if (synced > 0) {
+              console.log(`[sync] Synced ${synced} offline collection(s).`);
+            }
+            if (failed > 0) {
+              console.warn(`[sync] ${failed} item(s) failed to sync.`);
+            }
           }
         } catch (err) {
-          console.warn('[sync] Sync error:', err);
+          if (__DEV__) {
+            console.warn('[sync] Sync error:', err);
+          }
         }
       }
 

@@ -12,6 +12,15 @@ import {WebView} from 'react-native-webview';
 import NetInfo from '@react-native-community/netinfo';
 import {useTranslation} from 'react-i18next';
 
+function escapeHTML(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 function formatAddress(raw, unknownFallback) {
   if (!raw) {
     return unknownFallback;
@@ -53,13 +62,13 @@ function buildLeafletHTML(markers) {
       (m, i) => `
         var icon${i} = L.divIcon({
           className: '',
-          html: '<div style="background:${i === 0 ? '#2563eb' : '#e74c3c'};color:#fff;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,0.4)">${i + 1}</div>',
+          html: '<div style="background:${i === 0 ? '#2563eb' : '#e74c3c'};color:#fff;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,0.4)">${escapeHTML(i + 1)}</div>',
           iconSize: [28, 28],
           iconAnchor: [14, 14],
         });
         var marker${i} = L.marker([${m.lat}, ${m.lng}], {icon: icon${i}})
           .addTo(map)
-          .bindPopup(${JSON.stringify(`${i + 1}. ${m.label}`)});
+          .bindPopup(${JSON.stringify(escapeHTML(`${i + 1}. ${m.label}`))});
       `,
     )
     .join('');
@@ -163,11 +172,11 @@ export default function RouteOverviewScreen({route: navRoute, navigation}) {
           <WebView
             style={styles.map}
             source={{html: leafletHTML, baseUrl: 'https://unpkg.com'}}
-            originWhitelist={['*']}
+            originWhitelist={['https://*']}
             scrollEnabled={false}
             javaScriptEnabled
             domStorageEnabled
-            mixedContentMode="always"
+            mixedContentMode="never"
           />
         ) : (
           <View style={styles.mapOffline}>

@@ -10,7 +10,15 @@ const api = axios.create({
 api.interceptors.request.use(async config => {
   const serverUrl = await AsyncStorage.getItem('server_url');
   if (serverUrl) {
-    config.baseURL = serverUrl;
+    // Only allow HTTPS URLs as the base
+    try {
+      const parsed = new URL(serverUrl);
+      if (parsed.protocol === 'https:') {
+        config.baseURL = serverUrl;
+      }
+    } catch {
+      // Invalid URL stored — skip setting baseURL
+    }
   }
 
   const token = await AsyncStorage.getItem('auth_token');

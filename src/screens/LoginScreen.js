@@ -58,9 +58,24 @@ export default function LoginScreen({navigation}) {
         try {
           const cfg = JSON.parse(raw);
           if (cfg.type !== 'coltivo_config' || !cfg.companyName || !cfg.serverUrl) return;
+
+          // Validate server URL: must be a valid HTTPS URL
+          const trimmedUrl = cfg.serverUrl.trim();
+          let parsedUrl;
+          try {
+            parsedUrl = new URL(trimmedUrl);
+          } catch {
+            Alert.alert(t('error'), t('invalid_server_url') || 'Invalid server URL');
+            return;
+          }
+          if (parsedUrl.protocol !== 'https:') {
+            Alert.alert(t('error'), t('https_required') || 'Server URL must use HTTPS');
+            return;
+          }
+
           setConfigScanned(true);
           await AsyncStorage.setItem('saved_company_name', cfg.companyName.trim());
-          await AsyncStorage.setItem('server_url', cfg.serverUrl.trim());
+          await AsyncStorage.setItem('server_url', trimmedUrl);
           setCompanyName(cfg.companyName.trim());
           setCompanyLocked(true);
           setConfigScanVisible(false);
@@ -141,11 +156,12 @@ export default function LoginScreen({navigation}) {
 
       navigation.replace('RouteList');
     } catch (err) {
+      const serverMessage = err?.response?.data?.message;
       const message =
-        err?.response?.data?.message ||
-        err?.response?.data ||
-        t('login_failed_msg');
-      Alert.alert(t('login_failed'), String(message));
+        typeof serverMessage === 'string' && serverMessage.length < 200
+          ? serverMessage
+          : t('login_failed_msg');
+      Alert.alert(t('login_failed'), message);
       if (!companyLocked) await AsyncStorage.removeItem('server_url');
     } finally {
       setLoading(false);

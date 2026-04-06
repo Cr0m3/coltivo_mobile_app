@@ -178,11 +178,11 @@ export default function RouteListScreen({navigation}) {
             <WebView
               style={styles.miniMap}
               source={{html: miniMapHTML, baseUrl: 'https://unpkg.com'}}
-              originWhitelist={['*']}
+              originWhitelist={['https://*']}
               scrollEnabled={false}
               javaScriptEnabled
               domStorageEnabled
-              mixedContentMode="always"
+              mixedContentMode="never"
               onMessage={e => {
                 if (e.nativeEvent.data === 'dragStart') setScrollEnabled(false);
                 if (e.nativeEvent.data === 'dragEnd') setScrollEnabled(true);
