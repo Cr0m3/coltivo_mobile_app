@@ -47,13 +47,18 @@ function openNavigation(bin) {
   });
 }
 
+function safeCoord(value) {
+  const n = Number(value);
+  return Number.isFinite(n) ? n : 0;
+}
+
 function buildLeafletHTML(markers) {
   if (markers.length === 0) {
     return '';
   }
 
-  const lats = markers.map(m => m.lat);
-  const lngs = markers.map(m => m.lng);
+  const lats = markers.map(m => safeCoord(m.lat));
+  const lngs = markers.map(m => safeCoord(m.lng));
   const centerLat = (Math.min(...lats) + Math.max(...lats)) / 2;
   const centerLng = (Math.min(...lngs) + Math.max(...lngs)) / 2;
 
@@ -66,14 +71,14 @@ function buildLeafletHTML(markers) {
           iconSize: [28, 28],
           iconAnchor: [14, 14],
         });
-        var marker${i} = L.marker([${m.lat}, ${m.lng}], {icon: icon${i}})
+        var marker${i} = L.marker([${safeCoord(m.lat)}, ${safeCoord(m.lng)}], {icon: icon${i}})
           .addTo(map)
           .bindPopup(${JSON.stringify(escapeHTML(`${i + 1}. ${m.label}`))});
       `,
     )
     .join('');
 
-  const polylinePoints = markers.map(m => `[${m.lat}, ${m.lng}]`).join(',');
+  const polylinePoints = markers.map(m => `[${safeCoord(m.lat)}, ${safeCoord(m.lng)}]`).join(',');
   const markerRefs = markers.map((_, i) => `marker${i}`).join(',');
 
   return `<!DOCTYPE html>

@@ -17,6 +17,11 @@ import api from '../services/api';
 import OfflineBanner from '../components/OfflineBanner';
 import {getQueue} from '../services/offline';
 
+function safeCoord(value) {
+  const n = Number(value);
+  return Number.isFinite(n) ? n : 0;
+}
+
 function buildMiniMapHTML(markers) {
   if (markers.length === 0) {
     return '';
@@ -24,7 +29,7 @@ function buildMiniMapHTML(markers) {
   const markersJS = markers
     .map(
       (m, i) => `
-      L.circleMarker([${m.lat}, ${m.lng}], {
+      L.circleMarker([${safeCoord(m.lat)}, ${safeCoord(m.lng)}], {
         radius: ${i === 0 ? 7 : 5},
         fillColor: '${i === 0 ? '#2563eb' : '#e74c3c'}',
         color: '#fff',
@@ -33,8 +38,8 @@ function buildMiniMapHTML(markers) {
       }).addTo(map);`,
     )
     .join('');
-  const polylinePoints = markers.map(m => `[${m.lat},${m.lng}]`).join(',');
-  const boundsPoints = markers.map(m => `[${m.lat},${m.lng}]`).join(',');
+  const polylinePoints = markers.map(m => `[${safeCoord(m.lat)},${safeCoord(m.lng)}]`).join(',');
+  const boundsPoints = markers.map(m => `[${safeCoord(m.lat)},${safeCoord(m.lng)}]`).join(',');
   return `<!DOCTYPE html>
 <html><head>
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
