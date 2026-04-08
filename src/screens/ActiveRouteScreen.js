@@ -118,19 +118,19 @@ export default function ActiveRouteScreen({route: navRoute, navigation}) {
   }
 
   function openNavigation() {
-    const lat = binData?.coordinates?.lat;
-    const lng = binData?.coordinates?.lng;
+    const lat = Number(binData?.coordinates?.lat);
+    const lng = Number(binData?.coordinates?.lng);
 
-    if (!lat || !lng) {
+    if (!isFinite(lat) || !isFinite(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
       Alert.alert(t('no_location'), t('no_gps'));
       return;
     }
 
     const url = Platform.select({
-      ios: `maps://app?daddr=${lat},${lng}&dirflg=d`,
-      android: `google.navigation:q=${lat},${lng}`,
+      ios: `maps://app?daddr=${encodeURIComponent(lat)},${encodeURIComponent(lng)}&dirflg=d`,
+      android: `google.navigation:q=${encodeURIComponent(lat)},${encodeURIComponent(lng)}`,
     });
-    const fallback = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
+    const fallback = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(lat)},${encodeURIComponent(lng)}`;
 
     Linking.canOpenURL(url).then(supported => {
       Linking.openURL(supported ? url : fallback);

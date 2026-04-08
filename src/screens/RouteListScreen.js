@@ -17,14 +17,32 @@ import api from '../services/api';
 import OfflineBanner from '../components/OfflineBanner';
 import {getQueue} from '../services/offline';
 
+function isValidCoord(lat, lng) {
+  return (
+    typeof lat === 'number' &&
+    typeof lng === 'number' &&
+    isFinite(lat) &&
+    isFinite(lng) &&
+    lat >= -90 &&
+    lat <= 90 &&
+    lng >= -180 &&
+    lng <= 180
+  );
+}
+
 function buildMiniMapHTML(markers) {
   if (markers.length === 0) {
     return '';
   }
-  const markersJS = markers
+  // Sanitize: only use markers with valid numeric coordinates
+  const safe = markers.filter(m => isValidCoord(m.lat, m.lng));
+  if (safe.length === 0) {
+    return '';
+  }
+  const markersJS = safe
     .map(
       (m, i) => `
-      L.circleMarker([${m.lat}, ${m.lng}], {
+      L.circleMarker([${Number(m.lat)}, ${Number(m.lng)}], {
         radius: ${i === 0 ? 7 : 5},
         fillColor: '${i === 0 ? '#2563eb' : '#e74c3c'}',
         color: '#fff',
@@ -33,8 +51,8 @@ function buildMiniMapHTML(markers) {
       }).addTo(map);`,
     )
     .join('');
-  const polylinePoints = markers.map(m => `[${m.lat},${m.lng}]`).join(',');
-  const boundsPoints = markers.map(m => `[${m.lat},${m.lng}]`).join(',');
+  const polylinePoints = safe.map(m => `[${Number(m.lat)},${Number(m.lng)}]`).join(',');
+  const boundsPoints = safe.map(m => `[${Number(m.lat)},${Number(m.lng)}]`).join(',');
   return `<!DOCTYPE html>
 <html><head>
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
@@ -178,7 +196,7 @@ export default function RouteListScreen({navigation}) {
             <WebView
               style={styles.miniMap}
               source={{html: miniMapHTML, baseUrl: 'https://unpkg.com'}}
-              originWhitelist={['https://*']}
+              originWhitelist={['https://unpkg.com', 'https://tile.openstreetmap.org']}
               scrollEnabled={false}
               javaScriptEnabled
               domStorageEnabled

@@ -32,19 +32,32 @@ function formatAddress(raw, unknownFallback) {
 }
 
 function openNavigation(bin) {
-  const lat = bin?.coordinates?.lat;
-  const lng = bin?.coordinates?.lng;
-  if (!lat || !lng) {
+  const lat = Number(bin?.coordinates?.lat);
+  const lng = Number(bin?.coordinates?.lng);
+  if (!isFinite(lat) || !isFinite(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
     return;
   }
   const url = Platform.select({
-    ios: `maps://app?daddr=${lat},${lng}&dirflg=d`,
-    android: `google.navigation:q=${lat},${lng}`,
+    ios: `maps://app?daddr=${encodeURIComponent(lat)},${encodeURIComponent(lng)}&dirflg=d`,
+    android: `google.navigation:q=${encodeURIComponent(lat)},${encodeURIComponent(lng)}`,
   });
-  const fallback = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
+  const fallback = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(lat)},${encodeURIComponent(lng)}`;
   Linking.canOpenURL(url).then(supported => {
     Linking.openURL(supported ? url : fallback);
   });
+}
+
+function isValidCoord(lat, lng) {
+  return (
+    typeof lat === 'number' &&
+    typeof lng === 'number' &&
+    isFinite(lat) &&
+    isFinite(lng) &&
+    lat >= -90 &&
+    lat <= 90 &&
+    lng >= -180 &&
+    lng <= 180
+  );
 }
 
 function buildLeafletHTML(markers) {
@@ -52,12 +65,17 @@ function buildLeafletHTML(markers) {
     return '';
   }
 
-  const lats = markers.map(m => m.lat);
-  const lngs = markers.map(m => m.lng);
+  const safe = markers.filter(m => isValidCoord(m.lat, m.lng));
+  if (safe.length === 0) {
+    return '';
+  }
+
+  const lats = safe.map(m => m.lat);
+  const lngs = safe.map(m => m.lng);
   const centerLat = (Math.min(...lats) + Math.max(...lats)) / 2;
   const centerLng = (Math.min(...lngs) + Math.max(...lngs)) / 2;
 
-  const markersJS = markers
+  const markersJS = safe
     .map(
       (m, i) => `
         var icon${i} = L.divIcon({
@@ -66,15 +84,15 @@ function buildLeafletHTML(markers) {
           iconSize: [28, 28],
           iconAnchor: [14, 14],
         });
-        var marker${i} = L.marker([${m.lat}, ${m.lng}], {icon: icon${i}})
+        var marker${i} = L.marker([${Number(m.lat)}, ${Number(m.lng)}], {icon: icon${i}})
           .addTo(map)
           .bindPopup(${JSON.stringify(escapeHTML(`${i + 1}. ${m.label}`))});
       `,
     )
     .join('');
 
-  const polylinePoints = markers.map(m => `[${m.lat}, ${m.lng}]`).join(',');
-  const markerRefs = markers.map((_, i) => `marker${i}`).join(',');
+  const polylinePoints = safe.map(m => `[${Number(m.lat)}, ${Number(m.lng)}]`).join(',');
+  const markerRefs = safe.map((_, i) => `marker${i}`).join(',');
 
   return `<!DOCTYPE html>
 <html>
@@ -172,7 +190,7 @@ export default function RouteOverviewScreen({route: navRoute, navigation}) {
           <WebView
             style={styles.map}
             source={{html: leafletHTML, baseUrl: 'https://unpkg.com'}}
-            originWhitelist={['https://*']}
+            originWhitelist={['https://unpkg.com', 'https://tile.openstreetmap.org']}
             scrollEnabled={false}
             javaScriptEnabled
             domStorageEnabled
