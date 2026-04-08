@@ -126,6 +126,11 @@ export default function LoginScreen({navigation}) {
       return;
     }
 
+    if (username.trim().length > 100 || password.length > 500 || companyName.trim().length > 100) {
+      Alert.alert(t('error'), t('fields_required'));
+      return;
+    }
+
     const organizationSlug = companyNameToSlug(companyName);
 
     setLoading(true);
@@ -156,11 +161,15 @@ export default function LoginScreen({navigation}) {
 
       navigation.replace('RouteList');
     } catch (err) {
-      const serverMessage = err?.response?.data?.message;
-      const message =
-        typeof serverMessage === 'string' && serverMessage.length < 200
-          ? serverMessage
-          : t('login_failed_msg');
+      const status = err?.response?.status;
+      let message;
+      if (status === 401 || status === 403) {
+        message = t('invalid_credentials') || t('login_failed_msg');
+      } else if (status === 404) {
+        message = t('company_not_found') || t('login_failed_msg');
+      } else {
+        message = t('login_failed_msg');
+      }
       Alert.alert(t('login_failed'), message);
       if (!companyLocked) await AsyncStorage.removeItem('server_url');
     } finally {
