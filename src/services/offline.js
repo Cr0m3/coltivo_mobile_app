@@ -11,9 +11,15 @@ export async function getQueue() {
   }
 }
 
+function generateId() {
+  const bytes = new Uint8Array(16);
+  crypto.getRandomValues(bytes);
+  return Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('');
+}
+
 export async function addToQueue(collection) {
   const queue = await getQueue();
-  const _id = Date.now().toString(36) + Math.random().toString(36).slice(2);
+  const _id = generateId();
   queue.push({...collection, _id, _timestamp: Date.now()});
   await AsyncStorage.setItem(QUEUE_KEY, JSON.stringify(queue));
   return queue.length;
