@@ -34,7 +34,7 @@ api.interceptors.response.use(
   response => response,
   async error => {
     if (error.response?.status === 401) {
-      await AsyncStorage.multiRemove(['auth_token', 'auth_user']);
+      await AsyncStorage.multiRemove(['auth_token', 'auth_user', 'cached_routes']);
       DeviceEventEmitter.emit('session_expired');
     }
     return Promise.reject(error);
