@@ -1,11 +1,13 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import {safeJsonParse} from '../utils/safeJson';
 
 const QUEUE_KEY = 'offline_queue';
 
 export async function getQueue() {
   try {
     const raw = await AsyncStorage.getItem(QUEUE_KEY);
-    return raw ? JSON.parse(raw) : [];
+    const queue = raw ? safeJsonParse(raw, []) : [];
+    return Array.isArray(queue) ? queue : [];
   } catch {
     return [];
   }

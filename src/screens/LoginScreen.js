@@ -23,6 +23,7 @@ import {useBarcodeScanner} from '@mgcrea/vision-camera-barcode-scanner';
 import api from '../services/api';
 import appConfig from '../config/appConfig';
 import i18next, {SUPPORTED_LANGUAGES} from '../i18n';
+import {safeJsonParse} from '../utils/safeJson';
 
 function companyNameToSlug(name) {
   return name
@@ -56,8 +57,10 @@ export default function LoginScreen({navigation}) {
         const raw = barcodes[0]?.value;
         if (!raw) return;
         try {
-          const cfg = JSON.parse(raw);
-          if (cfg.type !== 'coltivo_config' || !cfg.companyName || !cfg.serverUrl) return;
+          const cfg = safeJsonParse(raw);
+          if (!cfg || typeof cfg !== 'object' || Array.isArray(cfg)) return;
+          if (cfg.type !== 'coltivo_config' || typeof cfg.companyName !== 'string' || typeof cfg.serverUrl !== 'string') return;
+          if (!cfg.companyName || !cfg.serverUrl) return;
 
           // Validate server URL: must be a valid HTTPS URL
           const trimmedUrl = cfg.serverUrl.trim();

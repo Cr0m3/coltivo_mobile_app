@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import api from './api';
 import {getQueue, removeFromQueue} from './offline';
+import {safeJsonParse} from '../utils/safeJson';
 
 /**
  * Flush the offline queue to the server, then refresh route cache.
@@ -42,7 +43,10 @@ async function refreshRouteCache() {
     if (!userRaw) {
       return;
     }
-    const user = JSON.parse(userRaw);
+    const user = safeJsonParse(userRaw);
+    if (!user || typeof user._id !== 'string') {
+      return;
+    }
     const response = await api.get('/routes', {
       params: {driver: user._id, status: 'planned'},
     });

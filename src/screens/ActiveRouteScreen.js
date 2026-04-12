@@ -25,6 +25,7 @@ import Geolocation from 'react-native-geolocation-service';
 import api from '../services/api';
 import {addToQueue} from '../services/offline';
 import OfflineBanner from '../components/OfflineBanner';
+import {safeJsonParse} from '../utils/safeJson';
 
 const FILL_STEPS = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100];
 const OVERFILL_STEPS = [110, 120, 130, 140, 150, 160, 170, 180, 190, 200, 210, 220, 230, 240, 250];
@@ -149,7 +150,7 @@ export default function ActiveRouteScreen({route: navRoute, navigation}) {
 
     const location = await getCurrentLocation();
     const userRaw = await AsyncStorage.getItem('auth_user');
-    const user = userRaw ? JSON.parse(userRaw) : {};
+    const user = userRaw ? safeJsonParse(userRaw, {}) : {};
 
     const overfillNote = overfill ? `[Overfill >100%] ${overfillReason.trim()}` : '';
     const combinedNotes = [notes, overfillNote].filter(Boolean).join('\n');

@@ -16,6 +16,7 @@ import {useTranslation} from 'react-i18next';
 import api from '../services/api';
 import OfflineBanner from '../components/OfflineBanner';
 import {getQueue} from '../services/offline';
+import {safeJsonParse} from '../utils/safeJson';
 
 function isValidCoord(lat, lng) {
   return (
@@ -111,7 +112,7 @@ export default function RouteListScreen({navigation}) {
   async function loadUser() {
     const raw = await AsyncStorage.getItem('auth_user');
     if (raw) {
-      setUser(JSON.parse(raw));
+      setUser(safeJsonParse(raw));
     }
   }
 
@@ -123,9 +124,9 @@ export default function RouteListScreen({navigation}) {
 
       if (online) {
         const userRaw = await AsyncStorage.getItem('auth_user');
-        const currentUser = userRaw ? JSON.parse(userRaw) : null;
+        const currentUser = userRaw ? safeJsonParse(userRaw) : null;
         const params = {status: 'planned'};
-        if (currentUser?._id) {
+        if (currentUser?._id && typeof currentUser._id === 'string') {
           params.driver = currentUser._id;
         }
         const response = await api.get('/routes', {params});
@@ -134,12 +135,12 @@ export default function RouteListScreen({navigation}) {
         await AsyncStorage.setItem('cached_routes', JSON.stringify(data));
       } else {
         const cached = await AsyncStorage.getItem('cached_routes');
-        setRoutes(cached ? JSON.parse(cached) : []);
+        setRoutes(cached ? safeJsonParse(cached, []) : []);
       }
     } catch (err) {
       // Fall back to cache on error
       const cached = await AsyncStorage.getItem('cached_routes');
-      setRoutes(cached ? JSON.parse(cached) : []);
+      setRoutes(cached ? safeJsonParse(cached, []) : []);
     }
 
     const queue = await getQueue();
@@ -199,7 +200,7 @@ export default function RouteListScreen({navigation}) {
               originWhitelist={['https://unpkg.com', 'https://tile.openstreetmap.org']}
               scrollEnabled={false}
               javaScriptEnabled
-              domStorageEnabled
+              domStorageEnabled={false}
               mixedContentMode="never"
               onMessage={e => {
                 if (e.nativeEvent.data === 'dragStart') setScrollEnabled(false);

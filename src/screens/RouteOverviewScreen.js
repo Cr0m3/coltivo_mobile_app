@@ -193,7 +193,7 @@ export default function RouteOverviewScreen({route: navRoute, navigation}) {
             originWhitelist={['https://unpkg.com', 'https://tile.openstreetmap.org']}
             scrollEnabled={false}
             javaScriptEnabled
-            domStorageEnabled
+            domStorageEnabled={false}
             mixedContentMode="never"
           />
         ) : (
