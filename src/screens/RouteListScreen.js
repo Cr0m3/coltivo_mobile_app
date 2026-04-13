@@ -111,7 +111,12 @@ export default function RouteListScreen({navigation}) {
   async function loadUser() {
     const raw = await AsyncStorage.getItem('auth_user');
     if (raw) {
-      setUser(JSON.parse(raw));
+      try {
+        setUser(JSON.parse(raw));
+      } catch {
+        // Corrupted auth data — clear it so the user is prompted to log in again
+        await AsyncStorage.removeItem('auth_user');
+      }
     }
   }
 
@@ -123,7 +128,12 @@ export default function RouteListScreen({navigation}) {
 
       if (online) {
         const userRaw = await AsyncStorage.getItem('auth_user');
-        const currentUser = userRaw ? JSON.parse(userRaw) : null;
+        let currentUser = null;
+        try {
+          currentUser = userRaw ? JSON.parse(userRaw) : null;
+        } catch {
+          currentUser = null;
+        }
         const params = {status: 'planned'};
         if (currentUser?._id) {
           params.driver = currentUser._id;
@@ -134,12 +144,20 @@ export default function RouteListScreen({navigation}) {
         await AsyncStorage.setItem('cached_routes', JSON.stringify(data));
       } else {
         const cached = await AsyncStorage.getItem('cached_routes');
-        setRoutes(cached ? JSON.parse(cached) : []);
+        try {
+          setRoutes(cached ? JSON.parse(cached) : []);
+        } catch {
+          setRoutes([]);
+        }
       }
     } catch (err) {
       // Fall back to cache on error
       const cached = await AsyncStorage.getItem('cached_routes');
-      setRoutes(cached ? JSON.parse(cached) : []);
+      try {
+        setRoutes(cached ? JSON.parse(cached) : []);
+      } catch {
+        setRoutes([]);
+      }
     }
 
     const queue = await getQueue();

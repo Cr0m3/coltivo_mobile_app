@@ -149,7 +149,12 @@ export default function ActiveRouteScreen({route: navRoute, navigation}) {
 
     const location = await getCurrentLocation();
     const userRaw = await AsyncStorage.getItem('auth_user');
-    const user = userRaw ? JSON.parse(userRaw) : {};
+    let user = {};
+    try {
+      user = userRaw ? JSON.parse(userRaw) : {};
+    } catch {
+      user = {};
+    }
 
     const overfillNote = overfill ? `[Overfill >100%] ${overfillReason.trim()}` : '';
     const combinedNotes = [notes, overfillNote].filter(Boolean).join('\n');
