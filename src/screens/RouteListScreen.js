@@ -109,9 +109,13 @@ export default function RouteListScreen({navigation}) {
   }, []);
 
   async function loadUser() {
-    const raw = await AsyncStorage.getItem('auth_user');
-    if (raw) {
-      setUser(JSON.parse(raw));
+    try {
+      const raw = await AsyncStorage.getItem('auth_user');
+      if (raw) {
+        setUser(JSON.parse(raw));
+      }
+    } catch {
+      // Corrupted storage — leave user as null; the API call will handle auth
     }
   }
 

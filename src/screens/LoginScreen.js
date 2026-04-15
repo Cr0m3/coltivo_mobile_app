@@ -163,10 +163,10 @@ export default function LoginScreen({navigation}) {
     } catch (err) {
       const status = err?.response?.status;
       let message;
-      if (status === 401 || status === 403) {
+      if (status === 401 || status === 403 || status === 404) {
+        // Use a single generic message for auth failures to prevent
+        // company-name enumeration via differentiated 404 vs 401 responses.
         message = t('invalid_credentials') || t('login_failed_msg');
-      } else if (status === 404) {
-        message = t('company_not_found') || t('login_failed_msg');
       } else {
         message = t('login_failed_msg');
       }
