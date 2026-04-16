@@ -111,7 +111,7 @@ export default function ActiveRouteScreen({route: navRoute, navigation}) {
     return new Promise(resolve => {
       Geolocation.getCurrentPosition(
         pos => resolve({lat: pos.coords.latitude, lng: pos.coords.longitude}),
-        () => resolve({lat: 0, lng: 0}),
+        () => resolve(null), // null signals unavailable; avoids sending null-island (0,0)
         {enableHighAccuracy: true, timeout: 8000, maximumAge: 10000},
       );
     });
@@ -188,15 +188,25 @@ export default function ActiveRouteScreen({route: navRoute, navigation}) {
 
   function handleManualSubmit() {
     const expected = binData?.qrCode ?? '—';
-    if (!manualCode.trim()) {
+    const trimmedCode = manualCode.trim();
+    const trimmedReason = manualReason.trim();
+    if (!trimmedCode) {
       Alert.alert(t('required'), t('enter_bin_code'));
       return;
     }
-    if (!manualReason.trim()) {
+    if (trimmedCode.length > 100) {
+      Alert.alert(t('error'), t('fields_required'));
+      return;
+    }
+    if (!trimmedReason) {
       Alert.alert(t('required'), t('enter_reason'));
       return;
     }
-    if (manualCode.trim() !== expected) {
+    if (trimmedReason.length > 500) {
+      Alert.alert(t('error'), t('fields_required'));
+      return;
+    }
+    if (trimmedCode !== expected) {
       Alert.alert(t('wrong_code'), t('wrong_code_msg', {expected}));
       return;
     }

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Debug-only network security config.
+  Cleartext (HTTP) is permitted ONLY for the Metro bundler (localhost / 10.0.2.2).
+  All other traffic must use HTTPS, even in debug builds.
+-->
+<network-security-config>
+    <domain-config cleartextTrafficPermitted="true">
+        <!-- Metro bundler on device -->
+        <domain includeSubdomains="false">localhost</domain>
+        <!-- Metro bundler from Android emulator -->
+        <domain includeSubdomains="false">10.0.2.2</domain>
+    </domain-config>
+    <base-config cleartextTrafficPermitted="false" />
+</network-security-config>

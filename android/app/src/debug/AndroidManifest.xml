@@ -2,8 +2,13 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <!--
+      Replace the blanket usesCleartextTraffic="true" with a network security
+      config that restricts cleartext traffic to localhost / 10.0.2.2 only
+      (Metro bundler). All other connections must use HTTPS even in debug builds.
+    -->
     <application
-        android:usesCleartextTraffic="true"
+        android:networkSecurityConfig="@xml/network_security_config"
         tools:targetApi="28"
         tools:ignore="GoogleAppIndexingWarning"/>
 </manifest>
