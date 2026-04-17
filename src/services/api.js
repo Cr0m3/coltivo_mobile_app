@@ -29,11 +29,12 @@ api.interceptors.request.use(async config => {
   return config;
 });
 
-// On 401, clear token (caller handles navigation to Login)
+// On 401/403, clear token (caller handles navigation to Login)
 api.interceptors.response.use(
   response => response,
   async error => {
-    if (error.response?.status === 401) {
+    const status = error.response?.status;
+    if (status === 401 || status === 403) {
       await AsyncStorage.multiRemove(['auth_token', 'auth_user']);
       DeviceEventEmitter.emit('session_expired');
     }

@@ -111,7 +111,11 @@ export default function RouteListScreen({navigation}) {
   async function loadUser() {
     const raw = await AsyncStorage.getItem('auth_user');
     if (raw) {
-      setUser(JSON.parse(raw));
+      try {
+        setUser(JSON.parse(raw));
+      } catch {
+        // Corrupted stored user data — discard
+      }
     }
   }
 
