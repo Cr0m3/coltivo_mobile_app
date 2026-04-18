@@ -58,6 +58,13 @@ export default function LoginScreen({navigation}) {
         try {
           const cfg = JSON.parse(raw);
           if (cfg.type !== 'coltivo_config' || !cfg.companyName || !cfg.serverUrl) return;
+          if (
+            typeof cfg.companyName !== 'string' ||
+            typeof cfg.serverUrl !== 'string' ||
+            cfg.companyName.trim().length === 0 ||
+            cfg.companyName.trim().length > 100 ||
+            cfg.serverUrl.trim().length > 2048
+          ) return;
 
           // Validate server URL: must be a valid HTTPS URL
           const trimmedUrl = cfg.serverUrl.trim();
