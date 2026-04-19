@@ -59,7 +59,10 @@ export default function App() {
           }
         } catch (err) {
           if (__DEV__) {
-            console.warn('[sync] Sync error:', err);
+            console.warn('[sync] Sync error:', {
+              message: err?.message,
+              status: err?.response?.status,
+            });
           }
         }
       }

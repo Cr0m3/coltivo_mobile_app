@@ -188,22 +188,32 @@ export default function ActiveRouteScreen({route: navRoute, navigation}) {
 
   function handleManualSubmit() {
     const expected = binData?.qrCode ?? '—';
-    if (!manualCode.trim()) {
+    const trimmedCode = manualCode.trim();
+    const trimmedReason = manualReason.trim();
+    if (!trimmedCode) {
       Alert.alert(t('required'), t('enter_bin_code'));
       return;
     }
-    if (!manualReason.trim()) {
+    if (trimmedCode.length > 100 || !/^[\w\-]+$/.test(trimmedCode)) {
+      Alert.alert(t('error'), t('invalid_bin_code') || 'Invalid bin code format');
+      return;
+    }
+    if (!trimmedReason) {
       Alert.alert(t('required'), t('enter_reason'));
       return;
     }
-    if (manualCode.trim() !== expected) {
+    if (trimmedReason.length > 500) {
+      Alert.alert(t('error'), t('reason_too_long') || 'Reason must be under 500 characters');
+      return;
+    }
+    if (trimmedCode !== expected) {
       Alert.alert(t('wrong_code'), t('wrong_code_msg', {expected}));
       return;
     }
     setQrScanned(true);
     setQrManual(true);
     setNotes(prev => {
-      const reasonNote = `[Manual QR] Reason: ${manualReason.trim()}`;
+      const reasonNote = `[Manual QR] Reason: ${trimmedReason}`;
       return prev ? `${prev}\n${reasonNote}` : reasonNote;
     });
     setManualModalVisible(false);
@@ -353,6 +363,7 @@ export default function ActiveRouteScreen({route: navRoute, navigation}) {
                 onChangeText={setManualCode}
                 autoCapitalize="none"
                 autoCorrect={false}
+                maxLength={100}
               />
               <Text style={styles.modalLabel}>{t('manual_reason_label')}</Text>
               <TextInput
@@ -362,6 +373,7 @@ export default function ActiveRouteScreen({route: navRoute, navigation}) {
                 onChangeText={setManualReason}
                 multiline
                 numberOfLines={3}
+                maxLength={500}
               />
               <View style={styles.modalActions}>
                 <TouchableOpacity

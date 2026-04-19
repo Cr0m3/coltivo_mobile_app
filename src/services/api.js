@@ -6,19 +6,22 @@ const api = axios.create({
   timeout: 15000,
 });
 
+const PRIVATE_HOST_RE = /^(localhost|127\.|10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.|::1$)/;
+
+function isSafeServerUrl(url) {
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === 'https:' && !PRIVATE_HOST_RE.test(parsed.hostname);
+  } catch {
+    return false;
+  }
+}
+
 // Inject baseURL and auth token on every request
 api.interceptors.request.use(async config => {
   const serverUrl = await AsyncStorage.getItem('server_url');
-  if (serverUrl) {
-    // Only allow HTTPS URLs as the base
-    try {
-      const parsed = new URL(serverUrl);
-      if (parsed.protocol === 'https:') {
-        config.baseURL = serverUrl;
-      }
-    } catch {
-      // Invalid URL stored — skip setting baseURL
-    }
+  if (serverUrl && isSafeServerUrl(serverUrl)) {
+    config.baseURL = serverUrl;
   }
 
   const token = await AsyncStorage.getItem('auth_token');

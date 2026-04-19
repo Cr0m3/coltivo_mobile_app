@@ -232,6 +232,7 @@ export default function LoginScreen({navigation}) {
             autoCapitalize="words"
             autoCorrect={false}
             editable={!companyLocked}
+            maxLength={100}
           />
 
           <Text style={styles.label}>{t('username')}</Text>
@@ -242,6 +243,7 @@ export default function LoginScreen({navigation}) {
             onChangeText={setUsername}
             autoCapitalize="none"
             autoCorrect={false}
+            maxLength={100}
           />
 
           <Text style={styles.label}>{t('password')}</Text>
@@ -251,6 +253,7 @@ export default function LoginScreen({navigation}) {
             value={password}
             onChangeText={setPassword}
             secureTextEntry
+            maxLength={500}
           />
 
           <TouchableOpacity
