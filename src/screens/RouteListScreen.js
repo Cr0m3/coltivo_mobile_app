@@ -111,7 +111,11 @@ export default function RouteListScreen({navigation}) {
   async function loadUser() {
     const raw = await AsyncStorage.getItem('auth_user');
     if (raw) {
-      setUser(JSON.parse(raw));
+      try {
+        setUser(JSON.parse(raw));
+      } catch {
+        await AsyncStorage.removeItem('auth_user');
+      }
     }
   }
 
@@ -138,8 +142,12 @@ export default function RouteListScreen({navigation}) {
       }
     } catch (err) {
       // Fall back to cache on error
-      const cached = await AsyncStorage.getItem('cached_routes');
-      setRoutes(cached ? JSON.parse(cached) : []);
+      try {
+        const cached = await AsyncStorage.getItem('cached_routes');
+        setRoutes(cached ? JSON.parse(cached) : []);
+      } catch {
+        setRoutes([]);
+      }
     }
 
     const queue = await getQueue();

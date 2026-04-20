@@ -149,7 +149,12 @@ export default function ActiveRouteScreen({route: navRoute, navigation}) {
 
     const location = await getCurrentLocation();
     const userRaw = await AsyncStorage.getItem('auth_user');
-    const user = userRaw ? JSON.parse(userRaw) : {};
+    let user = {};
+    try {
+      user = userRaw ? JSON.parse(userRaw) : {};
+    } catch {
+      // corrupted storage — proceed with empty user
+    }
 
     const overfillNote = overfill ? `[Overfill >100%] ${overfillReason.trim()}` : '';
     const combinedNotes = [notes, overfillNote].filter(Boolean).join('\n');
@@ -353,6 +358,7 @@ export default function ActiveRouteScreen({route: navRoute, navigation}) {
                 onChangeText={setManualCode}
                 autoCapitalize="none"
                 autoCorrect={false}
+                maxLength={100}
               />
               <Text style={styles.modalLabel}>{t('manual_reason_label')}</Text>
               <TextInput
@@ -362,6 +368,7 @@ export default function ActiveRouteScreen({route: navRoute, navigation}) {
                 onChangeText={setManualReason}
                 multiline
                 numberOfLines={3}
+                maxLength={500}
               />
               <View style={styles.modalActions}>
                 <TouchableOpacity
@@ -451,6 +458,7 @@ export default function ActiveRouteScreen({route: navRoute, navigation}) {
                 onChangeText={setOverfillReason}
                 multiline
                 numberOfLines={3}
+                maxLength={500}
               />
             </>
           )}
