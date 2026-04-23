@@ -12,7 +12,6 @@ import {
   ScrollView,
   Modal,
 } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useTranslation} from 'react-i18next';
 import {
   Camera,
@@ -21,6 +20,7 @@ import {
 } from 'react-native-vision-camera';
 import {useBarcodeScanner} from '@mgcrea/vision-camera-barcode-scanner';
 import api from '../services/api';
+import * as secureStorage from '../services/secureStorage';
 import appConfig from '../config/appConfig';
 import i18next, {SUPPORTED_LANGUAGES} from '../i18n';
 
@@ -74,8 +74,8 @@ export default function LoginScreen({navigation}) {
           }
 
           setConfigScanned(true);
-          await AsyncStorage.setItem('saved_company_name', cfg.companyName.trim());
-          await AsyncStorage.setItem('server_url', trimmedUrl);
+          await secureStorage.setItem('saved_company_name', cfg.companyName.trim());
+          await secureStorage.setItem('server_url', trimmedUrl);
           setCompanyName(cfg.companyName.trim());
           setCompanyLocked(true);
           setConfigScanVisible(false);
@@ -103,7 +103,7 @@ export default function LoginScreen({navigation}) {
 
   // On mount: restore saved company name, falling back to the build-time default
   useEffect(() => {
-    AsyncStorage.getItem('saved_company_name').then(saved => {
+    secureStorage.getItem('saved_company_name').then(saved => {
       if (saved) {
         setCompanyName(saved);
         setCompanyLocked(true);
@@ -116,7 +116,7 @@ export default function LoginScreen({navigation}) {
 
   async function changeLang(code) {
     await i18next.changeLanguage(code);
-    await AsyncStorage.setItem('app_language', code);
+    await secureStorage.setItem('app_language', code);
     setLangModalVisible(false);
   }
 
@@ -136,9 +136,9 @@ export default function LoginScreen({navigation}) {
     setLoading(true);
     try {
       // Use server URL from QR config if available, otherwise fall back to build-time default
-      const storedUrl = await AsyncStorage.getItem('server_url');
+      const storedUrl = await secureStorage.getItem('server_url');
       if (!storedUrl) {
-        await AsyncStorage.setItem('server_url', appConfig.SERVER_URL);
+        await secureStorage.setItem('server_url', appConfig.SERVER_URL);
       }
 
       const response = await api.post('/users/login', {
@@ -151,13 +151,13 @@ export default function LoginScreen({navigation}) {
 
       if (user.role !== 'driver' && user.role !== 'admin' && user.role !== 'manager') {
         Alert.alert(t('access_denied'), t('drivers_only'));
-        if (!companyLocked) await AsyncStorage.removeItem('server_url');
+        if (!companyLocked) await secureStorage.removeItem('server_url');
         return;
       }
 
-      await AsyncStorage.setItem('auth_token', token);
-      await AsyncStorage.setItem('auth_user', JSON.stringify(user));
-      await AsyncStorage.setItem('saved_company_name', companyName.trim());
+      await secureStorage.setItem('auth_token', token);
+      await secureStorage.setItem('auth_user', JSON.stringify(user));
+      await secureStorage.setItem('saved_company_name', companyName.trim());
 
       navigation.replace('RouteList');
     } catch (err) {
@@ -171,7 +171,7 @@ export default function LoginScreen({navigation}) {
         message = t('login_failed_msg');
       }
       Alert.alert(t('login_failed'), message);
-      if (!companyLocked) await AsyncStorage.removeItem('server_url');
+      if (!companyLocked) await secureStorage.removeItem('server_url');
     } finally {
       setLoading(false);
     }
@@ -218,7 +218,7 @@ export default function LoginScreen({navigation}) {
                 onPress={() => {
                   setCompanyLocked(false);
                   setCompanyName('');
-                  AsyncStorage.removeItem('saved_company_name');
+                  secureStorage.removeItem('saved_company_name');
                 }}>
                 <Text style={styles.changeLink}>{t('change')}</Text>
               </TouchableOpacity>

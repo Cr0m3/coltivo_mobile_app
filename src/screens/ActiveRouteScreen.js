@@ -12,7 +12,6 @@ import {
   Modal,
   Linking,
 } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import NetInfo from '@react-native-community/netinfo';
 import {useTranslation} from 'react-i18next';
 import {
@@ -23,6 +22,7 @@ import {
 import {useBarcodeScanner} from '@mgcrea/vision-camera-barcode-scanner';
 import Geolocation from 'react-native-geolocation-service';
 import api from '../services/api';
+import * as secureStorage from '../services/secureStorage';
 import {addToQueue} from '../services/offline';
 import OfflineBanner from '../components/OfflineBanner';
 
@@ -88,7 +88,7 @@ export default function ActiveRouteScreen({route: navRoute, navigation}) {
         } else {
           Alert.alert(
             t('wrong_qr'),
-            t('wrong_qr_msg', {scanned: code, expected}),
+            t('wrong_qr_msg', {scanned: code}),
           );
         }
       },
@@ -148,8 +148,11 @@ export default function ActiveRouteScreen({route: navRoute, navigation}) {
     setSubmitting(true);
 
     const location = await getCurrentLocation();
-    const userRaw = await AsyncStorage.getItem('auth_user');
-    const user = userRaw ? JSON.parse(userRaw) : {};
+    const userRaw = await secureStorage.getItem('auth_user');
+    let user = {};
+    try {
+      if (userRaw) {user = JSON.parse(userRaw);}
+    } catch { /* malformed stored data */ }
 
     const overfillNote = overfill ? `[Overfill >100%] ${overfillReason.trim()}` : '';
     const combinedNotes = [notes, overfillNote].filter(Boolean).join('\n');
@@ -197,7 +200,7 @@ export default function ActiveRouteScreen({route: navRoute, navigation}) {
       return;
     }
     if (manualCode.trim() !== expected) {
-      Alert.alert(t('wrong_code'), t('wrong_code_msg', {expected}));
+      Alert.alert(t('wrong_code'), t('wrong_code_msg'));
       return;
     }
     setQrScanned(true);

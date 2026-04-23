@@ -1,4 +1,4 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as secureStorage from './secureStorage';
 import api from './api';
 import {getQueue, removeFromQueue} from './offline';
 
@@ -38,7 +38,7 @@ export async function syncOfflineQueue() {
 
 async function refreshRouteCache() {
   try {
-    const userRaw = await AsyncStorage.getItem('auth_user');
+    const userRaw = await secureStorage.getItem('auth_user');
     if (!userRaw) {
       return;
     }
@@ -46,7 +46,7 @@ async function refreshRouteCache() {
     const response = await api.get('/routes', {
       params: {driver: user._id, status: 'planned'},
     });
-    await AsyncStorage.setItem('cached_routes', JSON.stringify(response.data));
+    await secureStorage.setItem('cached_routes', JSON.stringify(response.data));
   } catch {
     // Cache refresh is best-effort; don't throw
   }

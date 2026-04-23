@@ -10,10 +10,10 @@ import {
   RefreshControl,
 } from 'react-native';
 import {WebView} from 'react-native-webview';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import NetInfo from '@react-native-community/netinfo';
 import {useTranslation} from 'react-i18next';
 import api from '../services/api';
+import * as secureStorage from '../services/secureStorage';
 import OfflineBanner from '../components/OfflineBanner';
 import {getQueue} from '../services/offline';
 
@@ -109,9 +109,13 @@ export default function RouteListScreen({navigation}) {
   }, []);
 
   async function loadUser() {
-    const raw = await AsyncStorage.getItem('auth_user');
-    if (raw) {
-      setUser(JSON.parse(raw));
+    try {
+      const raw = await secureStorage.getItem('auth_user');
+      if (raw) {
+        setUser(JSON.parse(raw));
+      }
+    } catch {
+      // Malformed stored data — skip
     }
   }
 
@@ -122,8 +126,11 @@ export default function RouteListScreen({navigation}) {
       setIsOnline(online);
 
       if (online) {
-        const userRaw = await AsyncStorage.getItem('auth_user');
-        const currentUser = userRaw ? JSON.parse(userRaw) : null;
+        const userRaw = await secureStorage.getItem('auth_user');
+        let currentUser = null;
+        try {
+          if (userRaw) {currentUser = JSON.parse(userRaw);}
+        } catch { /* malformed stored data */ }
         const params = {status: 'planned'};
         if (currentUser?._id) {
           params.driver = currentUser._id;
@@ -131,15 +138,23 @@ export default function RouteListScreen({navigation}) {
         const response = await api.get('/routes', {params});
         const data = response.data;
         setRoutes(data);
-        await AsyncStorage.setItem('cached_routes', JSON.stringify(data));
+        await secureStorage.setItem('cached_routes', JSON.stringify(data));
       } else {
-        const cached = await AsyncStorage.getItem('cached_routes');
-        setRoutes(cached ? JSON.parse(cached) : []);
+        const cached = await secureStorage.getItem('cached_routes');
+        try {
+          setRoutes(cached ? JSON.parse(cached) : []);
+        } catch {
+          setRoutes([]);
+        }
       }
     } catch (err) {
       // Fall back to cache on error
-      const cached = await AsyncStorage.getItem('cached_routes');
-      setRoutes(cached ? JSON.parse(cached) : []);
+      const cached = await secureStorage.getItem('cached_routes');
+      try {
+        setRoutes(cached ? JSON.parse(cached) : []);
+      } catch {
+        setRoutes([]);
+      }
     }
 
     const queue = await getQueue();
@@ -164,7 +179,7 @@ export default function RouteListScreen({navigation}) {
         text: t('logout'),
         style: 'destructive',
         onPress: async () => {
-          await AsyncStorage.multiRemove(['auth_token', 'auth_user', 'server_url', 'cached_routes']);
+          await secureStorage.multiRemove(['auth_token', 'auth_user', 'server_url', 'cached_routes']);
           navigation.replace('Login');
         },
       },
