@@ -164,7 +164,7 @@ export default function RouteListScreen({navigation}) {
         text: t('logout'),
         style: 'destructive',
         onPress: async () => {
-          await AsyncStorage.multiRemove(['auth_token', 'auth_user', 'server_url', 'cached_routes']);
+          await AsyncStorage.multiRemove(['auth_token', 'auth_user', 'server_url', 'cached_routes', 'saved_company_name']);
           navigation.replace('Login');
         },
       },
