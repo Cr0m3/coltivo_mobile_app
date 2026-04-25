@@ -72,6 +72,10 @@ export default function LoginScreen({navigation}) {
             Alert.alert(t('error'), t('https_required') || 'Server URL must use HTTPS');
             return;
           }
+          if (!parsedUrl.hostname || parsedUrl.username || parsedUrl.password) {
+            Alert.alert(t('error'), t('invalid_server_url') || 'Invalid server URL');
+            return;
+          }
 
           setConfigScanned(true);
           await AsyncStorage.setItem('saved_company_name', cfg.companyName.trim());

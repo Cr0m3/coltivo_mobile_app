@@ -13,7 +13,7 @@ api.interceptors.request.use(async config => {
     // Only allow HTTPS URLs as the base
     try {
       const parsed = new URL(serverUrl);
-      if (parsed.protocol === 'https:') {
+      if (parsed.protocol === 'https:' && parsed.hostname && !parsed.username && !parsed.password) {
         config.baseURL = serverUrl;
       }
     } catch {
